@@ -1,0 +1,92 @@
+"""
+Integration tests for store_app REST API endpoints.
+Requires the app to be running at BASE_URL (docker compose up).
+"""
+import pytest
+import requests
+
+BASE_URL = "http://localhost:8001"
+
+
+@pytest.fixture(scope="module")
+def session():
+    s = requests.Session()
+    return s
+
+
+class TestProductListAPI:
+    """GET /clothing-products/<page>/"""
+
+    def test_returns_200(self, session):
+        r = session.get(f"{BASE_URL}/clothing-products/1/")
+        assert r.status_code == 200
+
+    def test_response_is_json(self, session):
+        r = session.get(f"{BASE_URL}/clothing-products/1/")
+        assert r.headers["Content-Type"].startswith("application/json")
+
+    def test_pagination_fields_present(self, session):
+        r = session.get(f"{BASE_URL}/clothing-products/1/")
+        data = r.json()
+        assert "results" in data or isinstance(data, list)
+
+    def test_invalid_page_returns_404_or_empty(self, session):
+        r = session.get(f"{BASE_URL}/clothing-products/99999/")
+        assert r.status_code in (200, 404)
+
+
+class TestProductDetailAPI:
+    """GET /clothing-products/items/<id>/"""
+
+    def test_nonexistent_product_returns_404(self, session):
+        r = session.get(f"{BASE_URL}/clothing-products/items/999999/")
+        assert r.status_code == 404
+
+
+class TestCollectionsAPI:
+    """GET /clothing-collections/"""
+
+    def test_returns_200(self, session):
+        r = session.get(f"{BASE_URL}/clothing-collections/")
+        assert r.status_code == 200
+
+    def test_returns_list(self, session):
+        r = session.get(f"{BASE_URL}/clothing-collections/")
+        data = r.json()
+        assert isinstance(data, list)
+
+
+class TestCategoriesAPI:
+    """GET /categories/"""
+
+    def test_returns_200(self, session):
+        r = session.get(f"{BASE_URL}/categories/")
+        assert r.status_code == 200
+
+    def test_each_category_has_title(self, session):
+        r = session.get(f"{BASE_URL}/categories/")
+        for cat in r.json():
+            assert "title" in cat
+
+
+class TestCartAPI:
+    """GET /cart/<token>/"""
+
+    def test_invalid_token_returns_404(self, session):
+        r = session.get(f"{BASE_URL}/cart/invalidtoken123/")
+        assert r.status_code == 404
+
+
+class TestOrderCreateAPI:
+    """POST /orders/"""
+
+    def test_empty_payload_returns_400(self, session):
+        r = session.post(f"{BASE_URL}/orders/", json={})
+        assert r.status_code in (400, 422)
+
+    def test_missing_email_returns_400(self, session):
+        r = session.post(f"{BASE_URL}/orders/", json={
+            "first_name": "John",
+            "last_name": "Doe",
+        })
+        assert r.status_code in (400, 422)

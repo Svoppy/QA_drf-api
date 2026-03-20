@@ -1,31 +1,58 @@
-# AITU Course Registration — QA Assignment 1
+# QA Assignment 1 — Habaneras de Lino DRF API
 
-Django web app for AITU students to browse and enroll in courses. Used as the system under test for QA AS1.
+## System Under Test
+
+**Habaneras de Lino** — Django REST Framework e-commerce API for a linen clothing store.
+Source: https://github.com/Ceci-Aguilera/habaneras-de-lino-drf-api
+
+Tech stack: Django 4.0.6, DRF 3.13.1, PostgreSQL, Nginx, Stripe, Cloudinary, Docker.
+
+## Repository Structure
+
+```
+qa_as1/
+├── sut/                        # System under test (cloned repo)
+├── tests/
+│   ├── conftest.py
+│   ├── unit/                   # Model & business logic tests (pytest-django)
+│   ├── integration/            # API endpoint tests (requests)
+│   └── e2e/                    # Browser tests (Playwright)
+├── docs/
+│   ├── 1_risk_assessment.md
+│   ├── 2_test_strategy.md
+│   ├── 3_environment_setup.md
+│   └── 4_baseline_metrics.md
+├── .github/workflows/ci.yml    # CI/CD pipeline
+├── pytest.ini
+└── requirements-test.txt
+```
 
 ## Quick Start
 
+### 1. Start the SUT
 ```bash
+cd sut
+cp habaneras_de_lino_drf_api/settings/simple_env_conf.env habaneras_de_lino_drf_api/settings/.env
 docker compose up --build
+# App runs at http://localhost:8001
 ```
 
-App: http://localhost:8000 | Admin: http://localhost:8000/admin/
-
-| User | Password |
-|------|----------|
-| `admin` | `admin1234` |
-| `student1` | `Student1234!` |
-
-## Run Tests
-
+### 2. Install test dependencies
 ```bash
-pip install -r app/requirements.txt
-
-# Unit + Integration
-pytest tests/unit/ tests/integration/ --cov=app --cov-report=term-missing
-
-# E2E (app must be running)
+pip install -r requirements-test.txt
 playwright install chromium
-pytest tests/e2e/ --base-url=http://localhost:8000
+```
+
+### 3. Run tests
+```bash
+# Unit tests only (no running app needed)
+pytest tests/unit/ --cov=sut/store_app --cov-report=term-missing
+
+# Integration tests (app must be running)
+pytest tests/integration/ -v
+
+# E2E tests (app must be running)
+pytest tests/e2e/ -v
 ```
 
 ## Deliverables
@@ -36,4 +63,3 @@ pytest tests/e2e/ --base-url=http://localhost:8000
 | 2 | Test Strategy | `docs/2_test_strategy.md` |
 | 3 | Environment Setup Report | `docs/3_environment_setup.md` |
 | 4 | Baseline Metrics | `docs/4_baseline_metrics.md` |
-# qa_as1

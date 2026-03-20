@@ -1,195 +1,136 @@
 # QA Test Strategy Document
-## AITU Course Registration System — AS1 Deliverable 2
-
-**Date:** March 2024
-**Author:** [Your Name]
-**System:** AITU Course Registration Portal (Django Web Application)
+## Habaneras de Lino DRF API — QA Assignment 1
 
 ---
 
-## 1. Project Scope and Objectives
+## 1. Project Scope & Objectives
 
-### 1.1 Scope
-This test strategy covers the AITU Course Registration Portal — a Django web application enabling students to register accounts, discover courses, and manage enrollments.
+**System under test:** Habaneras de Lino DRF API — a Django REST Framework e-commerce backend.
+**Repository:** https://github.com/Ceci-Aguilera/habaneras-de-lino-drf-api
 
 **In scope:**
-- User registration and authentication
-- Course listing, search, and filtering
-- Enrollment, drop, and waitlist workflows
-- Student dashboard and profile views
-- Admin panel access control
+- All REST API endpoints exposed by `store_app` (products, collections, categories, cart, orders)
+- Model-level business logic (validation, tax calculation, cart total)
+- Custom admin panel (`admin_app`) — login, dashboard navigation
+- Docker infrastructure — startup, connectivity
 
 **Out of scope:**
-- External integrations (payment systems, LDAP/SSO)
-- Mobile responsiveness testing
-- Accessibility (WCAG) compliance
-- Load/performance testing at scale (deferred to AS2)
+- Frontend (Next.js) — separate repository
+- Stripe live payment processing (test mode only)
+- Cloudinary CDN reliability
+- Performance / load testing (planned for later assignments)
 
-### 1.2 Objectives
-1. Validate that all critical user flows work correctly end-to-end.
-2. Ensure business rules (capacity limits, duplicate prevention) are enforced.
-3. Confirm access control prevents unauthorized actions.
-4. Establish a baseline coverage metric for future assignments.
-
----
-
-## 2. Risk-Based Test Prioritization
-
-Based on the Risk Assessment (Deliverable 1), testing effort is allocated as follows:
-
-| Module | Risk Level | Test Effort |
-|--------|------------|-------------|
-| Authentication | CRITICAL | 35% |
-| Enrollment Management | CRITICAL | 35% |
-| Course Search & Filter | MEDIUM | 15% |
-| Student Dashboard | MEDIUM | 10% |
-| Admin Panel | MEDIUM | 5% |
+**Objectives:**
+1. Verify that all critical API endpoints return correct status codes and response structures.
+2. Validate input validation rules on all POST endpoints.
+3. Confirm business logic correctness (pricing, cart totals, order creation).
+4. Establish a repeatable, automated test baseline for future assignments.
 
 ---
 
-## 3. Test Approach
+## 2. Test Approach
 
-### 3.1 Testing Pyramid
+### 2.1 Testing Levels
 
-```
-         /\
-        /E2E\          ← 10% of tests (Playwright, full browser)
-       /------\
-      / Integr \       ← 40% of tests (Django test client, HTTP layer)
-     /----------\
-    /    Unit    \     ← 50% of tests (models, forms, business logic)
-   /--------------\
-```
+| Level | Scope | Tools | When to Run |
+|-------|-------|-------|-------------|
+| **Unit** | Models, validators, business logic methods | pytest-django, Django TestCase | Every commit (fast, no network) |
+| **Integration** | API endpoints, request/response contracts | pytest + requests | Every commit (app must be running) |
+| **E2E** | Admin panel browser flows | Playwright | On PR merge or nightly |
 
-### 3.2 Test Types
+### 2.2 Test Priority (Risk-Based)
 
-**Unit Tests** (`tests/unit/`)
-- Scope: Model methods, form validation, utility functions
-- Tool: `pytest-django`
-- No HTTP, no browser, fastest execution
-- Examples: `enrolled_count`, `is_full`, `available_seats`, form field validators
+Tests are written and executed in order of risk score from the Risk Assessment:
 
-**Integration Tests** (`tests/integration/`)
-- Scope: View responses, authentication flows, database state after actions
-- Tool: Django `test.Client` via `pytest-django`
-- Tests complete request-response cycles
-- Examples: POST /enroll/, GET /courses/ with filters, login with wrong password
+1. **Order & Checkout** — POST /orders/ valid and invalid payloads
+2. **Data Validation** — All serializer boundary and negative tests
+3. **Tax Calculation** — GlobalModel edge cases (0, 1, many active records)
+4. **Cart Management** — Full lifecycle: create cart → add items → retrieve → checkout
+5. **Product Catalog** — Pagination, detail, 404 on missing items
+6. **Admin Panel** — Login, invalid credentials, dashboard visibility
 
-**End-to-End Tests** (`tests/e2e/`)
-- Scope: Complete user journeys through real browser
-- Tool: Playwright (`pytest-playwright`)
-- Requires a running application instance
-- Examples: register → browse courses → enroll → view my courses
+### 2.3 Manual vs Automated
 
-### 3.3 Manual vs Automated
-
-| Test Type | Approach | Rationale |
-|-----------|----------|-----------|
-| Unit tests | Automated | Fast, deterministic, high ROI |
-| Integration tests | Automated | Covers request/response cycles reliably |
-| E2E tests | Automated (Playwright) | Critical paths need regression protection |
-| Exploratory testing | Manual | Finding unexpected edge cases |
-| Usability review | Manual | UX cannot be fully automated |
+| Test Type | Approach | Reason |
+|-----------|----------|--------|
+| API contract testing | Automated (pytest) | Repeatable, fast, CI-friendly |
+| Model/unit testing | Automated (pytest-django) | No infrastructure required |
+| Admin panel smoke | Automated (Playwright) | Browser automation available |
+| Stripe webhook testing | Manual + mock | Cannot automate real Stripe events without ngrok |
+| Visual UI review | Manual | Admin panel styling edge cases |
+| Exploratory testing | Manual | Discover unexpected behaviors |
 
 ---
 
-## 4. Tool Selection and Configuration
+## 3. Tool Selection & Configuration
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| `pytest` | 8.1.x | Test runner |
-| `pytest-django` | 4.8.x | Django integration for pytest |
-| `pytest-cov` | 5.0.x | Code coverage reporting |
-| `playwright` | 1.43.x | Browser automation (E2E) |
-| `pytest-playwright` | 0.4.x | Playwright + pytest integration |
-| `factory-boy` | 3.3.x | Test data factories |
-| `Faker` | 24.x | Realistic fake data generation |
-| `coverage.py` | 7.4.x | Standalone coverage analysis |
-| `flake8` | — | Linting (enforced in CI) |
-| GitHub Actions | — | CI/CD pipeline |
-| Docker | — | Reproducible environment |
+| **pytest** | 7.4.3 | Test runner |
+| **pytest-django** | 4.7.0 | Django integration, in-memory DB for unit tests |
+| **pytest-cov** | 4.1.0 | Code coverage reporting |
+| **requests** | 2.31.0 | HTTP client for integration tests |
+| **Playwright** | latest | E2E browser automation |
+| **pytest-playwright** | 0.4.3 | Playwright pytest fixtures |
+| **Faker** | 20.1.0 | Generate realistic test data |
+| **Docker Compose** | v2 | Run SUT locally |
+| **GitHub Actions** | — | CI/CD pipeline |
 
-### 4.1 pytest Configuration (`pytest.ini`)
+**pytest.ini configuration:**
 ```ini
 [pytest]
-DJANGO_SETTINGS_MODULE = core.settings
-pythonpath = app
+DJANGO_SETTINGS_MODULE = habaneras_de_lino_drf_api.settings.settings
+pythonpath = sut
 testpaths = tests
-addopts = -v --tb=short --strict-markers
-```
-
-### 4.2 Coverage Target
-- **Current baseline:** To be measured in first run
-- **Minimum threshold:** 70% line coverage (enforced in CI with `--cov-fail-under=70`)
-- **Target by AS3:** 80% line coverage
-
----
-
-## 5. Test Environment
-
-| Environment | Purpose | URL |
-|-------------|---------|-----|
-| Local (Docker) | Development testing | http://localhost:8000 |
-| CI (GitHub Actions) | Automated testing on every push | — |
-
-**Setup:**
-```bash
-# Run app
-docker compose up web
-
-# Run unit + integration tests (no running app needed)
-pytest tests/unit/ tests/integration/
-
-# Run E2E tests (app must be running)
-pytest tests/e2e/ --base-url=http://localhost:8000
-
-# Full test suite with coverage
-pytest tests/unit/ tests/integration/ --cov=app --cov-report=term-missing
 ```
 
 ---
 
-## 6. Test Data Strategy
+## 4. Test Environment
 
-- **Fixtures:** Defined in `tests/conftest.py` using `pytest` fixtures with `@pytest.mark.django_db`
-- **Seed data:** `python manage.py seed` populates 12 courses, 5 departments, 2 users for manual/E2E testing
-- **Isolation:** Each test gets a clean database state via Django's test transaction rollback
-- **Factory Boy:** To be introduced in AS2 for complex data scenarios
-
----
-
-## 7. Planned Metrics
-
-| Metric | Definition | Target |
-|--------|-----------|--------|
-| Line coverage | % of app code executed by tests | ≥ 70% (AS1), ≥ 80% (AS3) |
-| Test count | Total number of automated tests | ≥ 30 by end of AS1 |
-| Pass rate | % of tests passing in CI | 100% on main branch |
-| High-risk coverage | % of CRITICAL modules with tests | 100% |
-| Defect detection rate | Bugs found before user report | Tracked from AS2 |
+| Environment | Purpose | How to Start |
+|-------------|---------|-------------|
+| Local Docker | Integration + E2E testing | `docker compose up --build` in `sut/` |
+| GitHub Actions CI | Automated unit + integration | Push to `main` triggers workflow |
+| In-memory SQLite | Unit tests only | Automatic via pytest-django |
 
 ---
 
-## 8. Entry and Exit Criteria
+## 5. Risk-Based Test Coverage Plan
 
-### Entry Criteria (start testing)
-- Application runs successfully via `docker compose up`
-- All migrations applied and seed data loaded
+| Risk Area | Test Type | Test Count (planned) | Coverage Target |
+|-----------|-----------|---------------------|----------------|
+| Order creation | Integration | 8 | 90% of order flow branches |
+| Data validation | Unit + Integration | 15 | 100% of required fields |
+| Tax calculation | Unit | 5 | 100% of pricing methods |
+| Cart lifecycle | Integration | 6 | 80% of cart operations |
+| Product API | Integration | 6 | 80% of endpoint variants |
+| Admin login | E2E | 3 | 100% of auth flows |
+| **Total planned** | | **43** | — |
+
+---
+
+## 6. Planned Metrics
+
+| Metric | How Measured | Target |
+|--------|-------------|--------|
+| **Test coverage (line)** | pytest-cov | ≥ 60% on `store_app/` |
+| **Test pass rate** | CI pipeline | 100% on main branch |
+| **Defects found per module** | Manual tracking | Tracked per risk area |
+| **API response time** | requests elapsed | < 500ms per endpoint (noted, not enforced) |
+| **CI pipeline duration** | GitHub Actions | < 5 minutes for unit + integration |
+
+---
+
+## 7. Entry & Exit Criteria
+
+**Entry criteria (to start testing):**
+- SUT starts successfully via `docker compose up`
+- All migrations applied without error
 - Test dependencies installed
 
-### Exit Criteria (testing complete for AS1)
-- All unit and integration tests pass
-- Coverage ≥ 70%
-- CI pipeline green on main branch
-- All CRITICAL-risk modules have automated test coverage
-
----
-
-## 9. Risks to Testing
-
-| Risk | Mitigation |
-|------|------------|
-| SQLite concurrency not tested | Document; plan PostgreSQL tests in AS2 |
-| E2E tests are flaky | Add `expect().to_be_visible()` with timeouts; retry on CI |
-| No authentication rate-limiting | Document as known gap; test manually |
-| Seed data state leaks between E2E tests | Flush DB and re-seed before E2E run |
+**Exit criteria (Assignment 1 complete):**
+- All planned unit and integration tests written and passing
+- CI pipeline runs green on push
+- All 4 deliverable documents completed
+- Baseline metrics recorded in `docs/4_baseline_metrics.md`

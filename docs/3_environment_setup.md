@@ -1,145 +1,142 @@
 # QA Environment Setup Report
-## AITU Course Registration System — AS1 Deliverable 3
-
-**Date:** March 2024
-**Author:** [Your Name]
+## Habaneras de Lino DRF API — QA Assignment 1
 
 ---
 
-## 1. System Requirements
-
-| Component | Version |
-|-----------|---------|
-| Docker | 24.x+ |
-| Docker Compose | 2.x+ |
-| Python | 3.11 |
-| Git | 2.x+ |
-
-No other dependencies are required on the host machine — Docker handles the rest.
-
----
-
-## 2. Repository Structure
+## 1. Repository Structure
 
 ```
-AS1/
-├── app/                            # Django application
-│   ├── core/                       # Django project configuration
-│   │   ├── settings.py
-│   │   ├── urls.py
-│   │   └── wsgi.py
-│   ├── courses/                    # Courses app (models, views, URLs)
-│   │   ├── management/commands/seed.py  # Database seeding
-│   │   ├── models.py
-│   │   ├── views.py
-│   │   ├── urls.py
-│   │   └── admin.py
-│   ├── users/                      # Users app (auth, registration)
-│   │   ├── forms.py
-│   │   ├── views.py
-│   │   └── urls.py
-│   ├── templates/                  # Django HTML templates
-│   │   ├── base.html
-│   │   ├── courses/
-│   │   └── users/
+qa_as1/
+├── sut/                                    # System Under Test (cloned from GitHub)
+│   ├── store_app/                          # Main e-commerce API app
+│   ├── admin_app/                          # Custom admin panel
+│   ├── habaneras_de_lino_drf_api/          # Django project settings
+│   │   └── settings/
+│   │       ├── settings.py
+│   │       └── simple_env_conf.env         # Template for .env
+│   ├── nginx/                              # Nginx reverse proxy config
+│   ├── docker-compose.yml
 │   ├── Dockerfile
 │   ├── manage.py
 │   └── requirements.txt
-│
-├── tests/                          # All tests (outside app)
-│   ├── conftest.py                 # Shared pytest fixtures
+├── tests/
+│   ├── conftest.py                         # Shared pytest fixtures
 │   ├── unit/
-│   │   ├── test_models.py          # Model unit tests
-│   │   └── test_forms.py          # Form validation tests
+│   │   └── test_models.py                  # Model & validator unit tests
 │   ├── integration/
-│   │   └── test_views.py          # View/workflow integration tests
+│   │   └── test_api_endpoints.py           # REST API integration tests
 │   └── e2e/
-│       └── test_e2e_flows.py      # Playwright E2E tests
-│
-├── docs/                           # Deliverable documents
+│       └── test_admin_panel.py             # Playwright browser tests
+├── docs/
 │   ├── 1_risk_assessment.md
 │   ├── 2_test_strategy.md
 │   ├── 3_environment_setup.md
 │   └── 4_baseline_metrics.md
-│
 ├── .github/
 │   └── workflows/
-│       └── ci.yml                 # GitHub Actions CI/CD pipeline
-│
-├── docker-compose.yml
-└── pytest.ini
+│       └── ci.yml                          # GitHub Actions CI pipeline
+├── pytest.ini
+├── requirements-test.txt
+└── README.md
 ```
 
 ---
 
-## 3. Installation & Setup
+## 2. Tools Installed & Configured
 
-### Step 1: Clone the Repository
+### 2.1 System Under Test
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Python | 3.8.10 | Runtime for Django app |
+| Django | 4.0.6 | Web framework |
+| Django REST Framework | 3.13.1 | API layer |
+| PostgreSQL | 14 | Primary database |
+| Docker | 24+ | Container runtime |
+| Docker Compose | v2 | Multi-container orchestration |
+| Nginx | latest | Reverse proxy (port 8001 → Django) |
+| Stripe SDK | 5.0.0 | Payment processing |
+| Cloudinary | 1.30.0 | Image CDN |
+
+### 2.2 QA / Test Tools
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| pytest | 7.4.3 | Test runner |
+| pytest-django | 4.7.0 | Django ORM access in tests |
+| pytest-cov | 4.1.0 | Coverage reporting |
+| requests | 2.31.0 | HTTP client for integration tests |
+| Playwright | latest | Browser automation |
+| pytest-playwright | 0.4.3 | Playwright fixtures for pytest |
+| Faker | 20.1.0 | Realistic test data generation |
+
+---
+
+## 3. SUT Setup Steps
+
+### Step 1 — Clone the repository
 ```bash
-git clone <your-repo-url>
-cd AS1
+git clone https://github.com/Ceci-Aguilera/habaneras-de-lino-drf-api.git sut
+cd sut
 ```
 
-### Step 2: Build and Start the Application
+### Step 2 — Configure environment variables
+```bash
+cp habaneras_de_lino_drf_api/settings/simple_env_conf.env \
+   habaneras_de_lino_drf_api/settings/.env
+```
+Edit `.env` and fill in:
+- `SECRET_KEY` — Django secret key
+- `DB_NAME`, `DB_USER`, `DB_PASSWORD` — PostgreSQL credentials
+- `STRIPE_SECRET_KEY` — Stripe test key (`sk_test_...`)
+- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` — Cloudinary credentials
+- `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` — SMTP credentials
+
+### Step 3 — Start the application
 ```bash
 docker compose up --build
 ```
+Application available at: **http://localhost:8001**
+Admin panel: **http://localhost:8001/admin/**
 
-This automatically:
-1. Builds the Django image
-2. Runs database migrations
-3. Seeds sample data (12 courses, 2 users)
-4. Starts Gunicorn on port 8000
-
-**Access the app:** http://localhost:8000
-
-**Default credentials:**
-| Username | Password | Role |
-|----------|----------|------|
-| `admin` | `admin1234` | Superuser (admin panel) |
-| `student1` | `Student1234!` | Regular student |
-
-**Admin panel:** http://localhost:8000/admin/
-
-### Step 3: Install Test Dependencies Locally (for running tests)
+### Step 4 — Create admin user (first run)
 ```bash
-pip install -r app/requirements.txt
+docker compose exec web python manage.py createsuperuser
+```
+
+---
+
+## 4. Test Environment Setup Steps
+
+### Step 1 — Install test dependencies
+```bash
+# From qa_as1/ root
+pip install -r requirements-test.txt
+```
+
+### Step 2 — Install Playwright browsers
+```bash
 playwright install chromium
 ```
 
----
-
-## 4. Running Tests
-
-### Unit & Integration Tests (no app needed)
+### Step 3 — Run unit tests (no app required)
 ```bash
-# All unit and integration tests
-pytest tests/unit/ tests/integration/ -v
-
-# With coverage report
-pytest tests/unit/ tests/integration/ --cov=app --cov-report=term-missing
-
-# Specific test file
-pytest tests/unit/test_models.py -v
+pytest tests/unit/ --cov=sut/store_app --cov-report=term-missing
 ```
 
-### E2E Tests (app must be running)
+### Step 4 — Run integration tests (app must be running)
 ```bash
-# Start app first
-docker compose up web -d
-
-# Run E2E tests
-pytest tests/e2e/ --base-url=http://localhost:8000 -v
+pytest tests/integration/ -v
 ```
 
-### Full Suite via Docker
+### Step 5 — Run E2E tests (app must be running)
 ```bash
-docker compose --profile test run test
+pytest tests/e2e/ -v
 ```
 
 ---
 
-## 5. CI/CD Pipeline
+## 5. CI/CD Pipeline Configuration
 
 **Platform:** GitHub Actions
 **File:** `.github/workflows/ci.yml`
@@ -147,78 +144,44 @@ docker compose --profile test run test
 ### Pipeline Stages
 
 ```
-Push/PR
-  │
-  ▼
-[Lint]           ← flake8 code quality check
-  │
-  ▼
-[Unit & Integration Tests]  ← pytest + coverage (≥70%)
-  │
-  ▼
-[E2E Tests]      ← Playwright browser tests
-  │
-  ▼
-[Docker Build]   ← Verifies image builds successfully
+Push to main/PR
+      │
+      ▼
+┌─────────────┐
+│ Unit Tests  │  ← PostgreSQL service container
+│             │    pytest tests/unit/ + coverage
+└──────┬──────┘
+       │ (on success)
+       ▼
+┌──────────────────────┐
+│ Integration Tests    │  ← docker compose up (SUT)
+│                      │    pytest tests/integration/
+└──────────────────────┘
 ```
 
-### Triggers
-- Push to `main` or `develop` branches
-- Pull requests targeting `main`
+**Triggers:**
+- Push to `main` or `master`
+- Pull Request to `main` or `master`
 
-### Artifacts
-- `coverage.xml` uploaded on every run for tracking
-
----
-
-## 6. Test Configuration
-
-**`pytest.ini`** — central pytest configuration:
-- `DJANGO_SETTINGS_MODULE = core.settings`
-- `pythonpath = app` (makes app importable)
-- `testpaths = tests`
-- Custom markers: `unit`, `integration`, `e2e`, `slow`
-
-**`tests/conftest.py`** — shared fixtures:
-- `client` — unauthenticated Django test client
-- `auth_client` — authenticated test client (logged in as `student`)
-- `course`, `full_course` — pre-created Course objects
-- `student`, `another_student` — User objects
-- `enrollment` — pre-existing Enrollment object
+**Artifacts:**
+- `coverage.xml` — uploaded after unit test run
 
 ---
 
-## 7. Environment Variables
+## 6. Version Control Setup
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SECRET_KEY` | `dev-secret-key` | Django secret key |
-| `DEBUG` | `True` | Debug mode |
-| `ALLOWED_HOSTS` | `localhost 127.0.0.1` | Allowed hosts |
-| `DJANGO_SETTINGS_MODULE` | `core.settings` | Settings module path |
+- **Repository host:** GitHub
+- **Branch strategy:** `main` for stable, feature branches for new test development
+- **SUT is pinned** as a git submodule reference (cloned into `sut/`) — not modified
+- `.gitignore` excludes: `sut/habaneras_de_lino_drf_api/settings/.env`, `__pycache__/`, `.pytest_cache/`, `coverage.xml`
 
 ---
 
-## 8. Installed Tools Summary
-
-| Tool | Installation | Verification |
-|------|-------------|-------------|
-| Docker | System | `docker --version` |
-| Python 3.11 | Docker image / local | `python --version` |
-| Django 4.2 | `requirements.txt` | `python -m django --version` |
-| pytest 8.1 | `requirements.txt` | `pytest --version` |
-| pytest-django | `requirements.txt` | (bundled) |
-| pytest-cov | `requirements.txt` | (bundled) |
-| Playwright | `requirements.txt` + `playwright install` | `playwright --version` |
-| coverage.py | `requirements.txt` | `coverage --version` |
-| GitHub Actions | Cloud (free tier) | Via GitHub repo |
-
----
-
-## 9. Known Issues & Workarounds
+## 7. Known Configuration Issues
 
 | Issue | Workaround |
 |-------|-----------|
-| SQLite not thread-safe for concurrency tests | Run concurrency tests against PostgreSQL in AS2 |
-| E2E tests require running server | Start app with `docker compose up web -d` before E2E run |
-| Playwright browsers must be installed separately | Run `playwright install chromium` after pip install |
+| `simple_env_conf.env` contains placeholder values | Must be replaced with real credentials before running |
+| Stripe live keys not available | Use Stripe test mode keys (`sk_test_*`) |
+| Cloudinary required for image fields | Use dummy credentials; image upload tests skipped |
+| `GlobalModel` must have exactly one active record | Management command or fixture needed for integration tests |

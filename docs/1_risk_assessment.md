@@ -1,173 +1,146 @@
 # Risk Assessment Document
-## AITU Course Registration System — AS1 Deliverable 1
-
-**Date:** March 2024
-**Author:** [Your Name]
-**System:** AITU Course Registration Portal (Django Web Application)
+## Habaneras de Lino DRF API — QA Assignment 1
 
 ---
 
 ## 1. System Overview
 
-The AITU Course Registration Portal is a Django-based web application that allows students of Astana IT University to browse, search, and enroll in academic courses. Core functionality includes user authentication, course discovery, enrollment management, and a student dashboard.
+**Habaneras de Lino** is an open-source Django REST Framework backend for an e-commerce clothing store. It exposes a public REST API consumed by a Next.js frontend and includes a custom Django admin panel for store management.
 
-**Technology Stack:**
-- Backend: Django 4.2 (Python)
-- Database: SQLite (dev) / PostgreSQL (prod)
-- Frontend: Django Templates (HTML/CSS)
-- Infrastructure: Docker, Gunicorn
-
-**Key Modules:**
-1. Authentication (register, login, logout)
-2. Course Listing & Search
-3. Enrollment Management (enroll, drop, waitlist)
-4. Student Dashboard (my courses, profile)
-5. Admin Panel
+- **Repository:** https://github.com/Ceci-Aguilera/habaneras-de-lino-drf-api
+- **Framework:** Django 4.0.6 + DRF 3.13.1
+- **Database:** PostgreSQL
+- **External services:** Stripe (payments), Cloudinary (image storage)
+- **Deployment:** Docker + Nginx
 
 ---
 
-## 2. Risk Assessment Methodology
+## 2. Identified Modules / Components
 
-Risk was assessed using a **Risk Matrix** based on two dimensions:
-
-| Dimension | Scale | Criteria |
-|-----------|-------|----------|
-| **Probability** | 1–5 | How likely is a failure in this module? |
-| **Impact** | 1–5 | How severe would a failure be for users/business? |
-
-**Risk Score = Probability × Impact**
-
-| Score Range | Risk Level | Priority |
-|-------------|------------|----------|
-| 20–25 | Critical | Test first, thoroughly |
-| 12–19 | High | Requires comprehensive testing |
-| 6–11 | Medium | Standard testing |
-| 1–5 | Low | Basic coverage sufficient |
+| # | Module | Description |
+|---|--------|-------------|
+| M1 | **Order & Checkout Flow** | POST /orders/ — creates an order linked to a cart, address, and Stripe payment |
+| M2 | **Stripe Payment Integration** | Processes payment charges via Stripe API; handles refund statuses |
+| M3 | **Cart Management** | Create/update/delete product variations in a session cart identified by token |
+| M4 | **Product Catalog API** | List and detail endpoints for clothing products with pagination |
+| M5 | **Collections & Categories API** | Browsing and filtering by collection name/year and category |
+| M6 | **Data Validation & Serializers** | Input validation for all POST/PATCH endpoints |
+| M7 | **Admin Panel (admin_app)** | Custom Bootstrap dashboard for managing products, orders, payments |
+| M8 | **GlobalModel / Tax Calculation** | Single active record drives currency exchange and US sales tax computation |
+| M9 | **Image Upload (Cloudinary)** | Product and collection images uploaded to Cloudinary CDN |
+| M10 | **Docker / Nginx Infrastructure** | Container orchestration, reverse proxy, static files serving |
 
 ---
 
-## 3. Module Risk Analysis
+## 3. Risk Assessment Matrix
 
-### Module 1: User Authentication
-**Description:** Registration, login, logout, session management, password validation.
+Risk Score = Probability (1–5) × Impact (1–5)
 
-| Factor | Value | Reasoning |
-|--------|-------|-----------|
-| Probability | 4 | Auth bugs are frequent; complex validation rules |
-| Impact | 5 | Unauthorized access = security breach; broken login = full lockout |
-| **Risk Score** | **20** | **CRITICAL** |
-
-**Key risks:**
-- Brute force attacks on login endpoint (no rate limiting in MVP)
-- Duplicate email registration bypass
-- Session fixation after login
-- Password validation not enforced on client side
-- Redirect after login (`?next=`) could be manipulated (open redirect)
-
-**Assumptions:** CSRF protection is enabled (Django default). Password hashing uses PBKDF2 (Django default).
+| Module | Probability of Failure | Impact if Fails | Risk Score | Priority |
+|--------|----------------------|-----------------|------------|----------|
+| M2 — Stripe Payment | 3 | 5 | **15** | 🔴 Critical |
+| M1 — Order & Checkout | 4 | 5 | **20** | 🔴 Critical |
+| M8 — Tax Calculation | 3 | 4 | **12** | 🔴 High |
+| M6 — Data Validation | 4 | 4 | **16** | 🔴 High |
+| M3 — Cart Management | 3 | 4 | **12** | 🟠 High |
+| M7 — Admin Panel | 2 | 3 | **6** | 🟡 Medium |
+| M4 — Product Catalog | 2 | 3 | **6** | 🟡 Medium |
+| M9 — Image Upload | 2 | 2 | **4** | 🟢 Low |
+| M5 — Collections API | 1 | 2 | **2** | 🟢 Low |
+| M10 — Infrastructure | 2 | 5 | **10** | 🟠 Medium |
 
 ---
 
-### Module 2: Enrollment Management
-**Description:** Enrolling in courses, dropping, waitlisting, preventing duplicates, capacity enforcement.
+## 4. Detailed Risk Analysis
 
-| Factor | Value | Reasoning |
-|--------|-------|-----------|
-| Probability | 4 | Complex state machine; concurrent access possible |
-| Impact | 5 | Incorrect enrollment = wrong academic record, seat overbooking |
-| **Risk Score** | **20** | **CRITICAL** |
+### M1 — Order & Checkout Flow (Score: 20) 🔴 Critical
+**Why critical:** This is the core business transaction. A failure here means lost revenue and broken user experience. The endpoint combines cart validation, address persistence, email notification, and Stripe charge in a single operation — high cyclomatic complexity.
 
-**Key risks:**
-- Race condition: two students enroll simultaneously in the last seat
-- Double enrollment bypass (if unique constraint fails)
-- Enrolling in inactive/full courses
-- Dropping course you're not enrolled in (404 vs. 403 ambiguity)
-- Waitlist-to-enrolled promotion logic (not yet implemented)
+**Failure scenarios:**
+- Cart token mismatch or inactive cart accepted
+- Missing required fields accepted without error
+- Email notification silently fails
+- Order created but payment not recorded
 
-**Assumptions:** SQLite handles concurrency poorly; PostgreSQL recommended for production.
+**Testing approach:** Integration tests with mock Stripe; unit tests for order state machine.
 
 ---
 
-### Module 3: Course Search & Filter
-**Description:** Text search by title/code/instructor, filter by department and semester.
+### M6 — Data Validation (Score: 16) 🔴 High
+**Why critical:** DRF serializers are the only layer preventing malformed data from reaching the database. Missing or weak validation allows corrupt records, crashes, and security issues.
 
-| Factor | Value | Reasoning |
-|--------|-------|-----------|
-| Probability | 3 | Search logic is relatively simple but user-facing |
-| Impact | 3 | Broken search = poor UX but not data corruption |
-| **Risk Score** | **9** | **MEDIUM** |
+**Failure scenarios:**
+- Negative quantity in ProductVariation accepted
+- Invalid color code (#GGGGGG) stored without error
+- Zip code longer than 5 digits accepted
+- Email field not validated as email format
 
-**Key risks:**
-- SQL injection via search query (mitigated by Django ORM parameterization)
-- Empty results when filters are combined (no course matches)
-- Case sensitivity in search (Django `icontains` mitigates this)
-- Performance: N+1 queries on course list without `select_related`
-
-**Assumptions:** Django ORM prevents raw SQL injection.
+**Testing approach:** Boundary value tests on all serializers; invalid payloads to all POST endpoints.
 
 ---
 
-### Module 4: Student Dashboard (My Courses / Profile)
-**Description:** Displays enrolled courses, credits count, enrollment history.
+### M2 — Stripe Payment Integration (Score: 15) 🔴 Critical
+**Why critical:** Real money is involved. A bug in charge creation or refund handling causes financial loss or legal exposure.
 
-| Factor | Value | Reasoning |
-|--------|-------|-----------|
-| Probability | 2 | Read-only; low mutation risk |
-| Impact | 3 | Wrong data displayed; credit miscalculation affects advising |
-| **Risk Score** | **6** | **MEDIUM** |
+**Failure scenarios:**
+- Double charge on retry
+- Refund status not updated after Stripe webhook
+- Invalid Stripe key not handled gracefully
 
-**Key risks:**
-- Total credits calculation includes dropped/waitlisted courses incorrectly
-- Displaying another student's data (IDOR — Insecure Direct Object Reference)
-- Stale enrollment status shown after status change
+**Testing approach:** Unit tests with Stripe mocks; verify error response codes on payment failures.
 
 ---
 
-### Module 5: Admin Panel
-**Description:** Django Admin for managing courses, departments, enrollments.
+### M8 — Tax & Currency Calculation (Score: 12) 🔴 High
+**Why critical:** `GlobalModel` is a singleton — if no active record exists, `pricing_with_tax()` raises an unhandled exception crashing product detail and order creation.
 
-| Factor | Value | Reasoning |
-|--------|-------|-----------|
-| Probability | 2 | Low user-facing; admin users are trusted |
-| Impact | 4 | Admin can delete/modify all data |
-| **Risk Score** | **8** | **MEDIUM** |
+**Failure scenarios:**
+- No active GlobalModel → 500 on any pricing call
+- Multiple active GlobalModels → ambiguous tax rate
+- Wrong MX conversion factor → incorrect pricing displayed
 
-**Key risks:**
-- Default admin credentials not changed in production
-- Admin accessible without TLS/HTTPS in deployment
-- Bulk enrollment edits bypassing business logic
+**Testing approach:** Unit tests covering zero, one, and multiple active GlobalModel records.
 
 ---
 
-## 4. Prioritized Risk Summary
+### M3 — Cart Management (Score: 12) 🟠 High
+**Why critical:** Cart is the state that carries the purchase through checkout. Stale or incorrect cart state corrupts orders.
 
-| Rank | Module | Risk Score | Level | Priority Action |
-|------|--------|-----------|-------|----------------|
-| 1 | Authentication | 20 | CRITICAL | Full test coverage: unit + integration + E2E |
-| 2 | Enrollment Management | 20 | CRITICAL | Concurrency tests, state machine validation |
-| 3 | Admin Panel | 8 | MEDIUM | Access control tests |
-| 4 | Course Search & Filter | 9 | MEDIUM | Functional + edge case tests |
-| 5 | Student Dashboard | 6 | MEDIUM | Data integrity tests |
+**Failure scenarios:**
+- Inactive cart accepted for checkout
+- Cart token collision between users
+- Orphaned ProductVariations after cart deletion
 
----
-
-## 5. Assumptions & Constraints
-
-1. The system uses Django's built-in CSRF protection — token-based attacks are mitigated.
-2. Testing is performed in a SQLite environment; production risks of concurrency are higher with SQLite than PostgreSQL.
-3. No external payment or academic SIS integration exists in this version.
-4. Rate limiting and HTTPS termination are assumed to be handled at the infrastructure level (e.g., nginx/load balancer), not the application layer.
-5. Admin users are treated as fully trusted; privilege escalation within admin is out of scope.
+**Testing approach:** Integration tests for cart lifecycle: create → add items → retrieve → checkout.
 
 ---
 
-## 6. Risk Reduction Strategy
+### M10 — Docker/Nginx Infrastructure (Score: 10) 🟠 Medium
+**Why medium:** Infrastructure failure prevents all testing and production access, but the configuration is relatively simple and stable.
 
-| Risk | Mitigation |
-|------|------------|
-| Double enrollment | Database `unique_together` constraint + application-level check |
-| Auth bypass | Django auth middleware + `@login_required` decorator |
-| SQL injection | Django ORM parameterization |
-| Session fixation | Django rotates session key on login |
-| IDOR | All queries filtered by `request.user` |
-| Race conditions | Recommend moving to PostgreSQL + DB-level locking |
+**Testing approach:** Smoke test — verify app responds after `docker compose up`.
+
+---
+
+## 5. Prioritized Testing Order
+
+1. 🔴 M1 — Order & Checkout Flow
+2. 🔴 M6 — Data Validation & Serializers
+3. 🔴 M2 — Stripe Payment Integration
+4. 🔴 M8 — Tax & Currency Calculation
+5. 🟠 M3 — Cart Management
+6. 🟠 M10 — Infrastructure smoke test
+7. 🟡 M4 — Product Catalog API
+8. 🟡 M7 — Admin Panel
+9. 🟢 M9 — Image Upload
+10. 🟢 M5 — Collections & Categories
+
+---
+
+## 6. Assumptions & Reasoning
+
+- **Stripe integration is untestable in full** without Stripe test keys — tests will use mocks or test-mode keys.
+- **Cloudinary** is treated as low risk because image upload failure does not break core purchase flow.
+- **Admin panel** is medium risk because it is used internally only; a bug here affects operations, not end-customer revenue.
+- **GlobalModel singleton** pattern is considered a design risk — tests must cover the missing-record edge case explicitly.
+- No authentication is required for most store API endpoints (public browsing); cart is identified only by token — session fixation is a potential security risk noted but deferred to security testing.
