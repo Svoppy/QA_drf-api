@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Register — AITU{% endblock %}
+{% block content %}
+<div style="max-width:480px; margin:2rem auto;">
+    <div class="card">
+        <h2 style="margin-bottom:1.5rem; text-align:center;">Create Account</h2>
+        <form method="post" id="register-form">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <ul style="color:#c62828; font-size:0.85rem; margin-top:0.3rem; list-style:none;">
+                    {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+                {% endif %}
+                {% if field.help_text %}
+                <small style="color:#757575;">{{ field.help_text }}</small>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:0.5rem;">Create Account</button>
+        </form>
+        <p style="text-align:center; margin-top:1rem; color:#757575;">
+            Already have an account? <a href="/users/login/" style="color:#1a237e;">Login</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

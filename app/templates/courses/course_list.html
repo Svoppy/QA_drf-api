@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Courses — AITU{% endblock %}
+{% block content %}
+<h2 style="margin-bottom:1.5rem;">Available Courses</h2>
+
+<div class="card">
+    <form method="get" style="display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
+        <div class="form-group" style="margin:0; flex:2; min-width:200px;">
+            <label>Search</label>
+            <input type="text" name="q" value="{{ query }}" placeholder="Course name, code, instructor...">
+        </div>
+        <div class="form-group" style="margin:0; flex:1; min-width:150px;">
+            <label>Department</label>
+            <select name="department">
+                <option value="">All</option>
+                {% for dept in departments %}
+                <option value="{{ dept.id }}" {% if selected_department == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" style="margin:0; flex:1; min-width:120px;">
+            <label>Semester</label>
+            <select name="semester">
+                <option value="">All</option>
+                <option value="Fall" {% if selected_semester == "Fall" %}selected{% endif %}>Fall</option>
+                <option value="Spring" {% if selected_semester == "Spring" %}selected{% endif %}>Spring</option>
+                <option value="Summer" {% if selected_semester == "Summer" %}selected{% endif %}>Summer</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="height:38px;">Filter</button>
+    </form>
+</div>
+
+{% if courses %}
+<p style="color:#757575; margin-bottom:1rem;">{{ courses.count }} course{{ courses.count|pluralize }} found</p>
+<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:1rem;">
+{% for course in courses %}
+<div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+    <div>
+        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:0.5rem;">
+            <span class="badge badge-blue">{{ course.code }}</span>
+            {% if course.is_full %}
+            <span class="badge badge-red">Full</span>
+            {% else %}
+            <span class="badge badge-green">{{ course.available_seats }} seats</span>
+            {% endif %}
+        </div>
+        <h3 style="margin-bottom:0.3rem;"><a href="/courses/{{ course.pk }}/" style="text-decoration:none; color:#1a237e;">{{ course.title }}</a></h3>
+        <p style="font-size:0.85rem; color:#757575; margin-bottom:0.5rem;">{{ course.instructor }} · {{ course.department.name }} · {{ course.credits }} credits</p>
+        <p style="font-size:0.9rem;">{{ course.description|truncatechars:100 }}</p>
+    </div>
+    <div style="margin-top:1rem; display:flex; gap:0.5rem;">
+        <a href="/courses/{{ course.pk }}/" class="btn btn-secondary">Details</a>
+        {% if user.is_authenticated %}
+            {% if course.pk in enrolled_course_ids %}
+            <span class="badge badge-green" style="padding:0.5rem 1rem;">Enrolled</span>
+            {% else %}
+            <form method="post" action="/courses/{{ course.pk }}/enroll/">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">
+                    {% if course.is_full %}Join Waitlist{% else %}Enroll{% endif %}
+                </button>
+            </form>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align:center; color:#757575;">
+    <p>No courses found matching your criteria.</p>
+</div>
+{% endif %}
+{% endblock %}
