@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+coverage.xml
+.coverage
+*.egg-info/
+dist/
+build/
+sut/habaneras-de-lino-drf-api/habaneras_de_lino_drf_api/settings/.env
+sut/habaneras-de-lino-drf-api/db.sqlite3
+sut/habaneras-de-lino-drf-api/staticfiles/
+*.log

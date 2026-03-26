@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -si http://localhost:8001/clothing-collections/)",
+      "Bash(docker exec:*)",
+      "Bash(sudo lsof:*)",
+      "Bash(curl -si http://localhost:8002/clothing-collections/)",
+      "Bash(pip3 install:*)",
+      "Bash(.venv/bin/pytest tests/e2e/ -v)"
+    ]
+  }
+}
