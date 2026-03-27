@@ -6,7 +6,9 @@
       "Bash(sudo lsof:*)",
       "Bash(curl -si http://localhost:8002/clothing-collections/)",
       "Bash(pip3 install:*)",
-      "Bash(.venv/bin/pytest tests/e2e/ -v)"
+      "Bash(.venv/bin/pytest tests/e2e/ -v)",
+      "Bash(.venv/bin/pytest tests/unit/ -v --cov=store_app --cov-report=term-missing --tb=short)",
+      "Bash(.venv/bin/pytest tests/unit/ -v --tb=short)"
     ]
   }
 }
