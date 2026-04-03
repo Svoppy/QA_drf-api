@@ -130,6 +130,44 @@ jobs:
         working-directory: sut/habaneras-de-lino-drf-api
         run: docker compose down
 
+  # JOB 4: CD — Build and push Docker image to GitHub Container Registry
+  # Runs only on push to main (not on PRs), after all tests pass
+  publish:
+    name: "CD — Push Docker image to GHCR"
+    runs-on: ubuntu-latest
+    needs: e2e-tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/api
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: sut/habaneras-de-lino-drf-api
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
   # JOB 3: E2E Tests (Playwright browser automation)
   # Quality gate: 100% pass rate on admin login / dashboard flows
   e2e-tests:
