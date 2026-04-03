@@ -8,9 +8,11 @@
 | Category | AS1 | AS2 New | AS2 Total |
 |----------|-----|---------|-----------|
 | Unit tests | 10 | 12 | **22** |
-| Integration tests | 13 | 19 | **32** |
+| Integration tests | 13 | 15 | **28** |
 | E2E tests | 5 | 0 | **5** |
-| **Total** | **28** | **31** | **59** |
+| **Total** | **28** | **27** | **55** |
+
+> Note: Integration test count is 28 (not 32 as initially estimated in planning documents). The 4-test gap is because test_cart_lifecycle.py contains 4 tests (not 8) and some planned tests were consolidated.
 
 ---
 
@@ -34,10 +36,11 @@
 
 ---
 
-## 3. Code Coverage (Unit Tests — 2026-03-27)
+## 3. Code Coverage (Unit Tests — 2026-04-03)
 
 Measured with `pytest-cov` against `store_app/` package.
-Run: `.venv/bin/pytest tests/unit/ --cov=store_app --cov-report=term-missing`
+Run: `python -m pytest tests/unit/ --cov=store_app --cov-report=term-missing`
+Platform: Windows 10, Python 3.12.7, Django 4.0.6
 
 | File | Statements | Missed | Coverage |
 |------|-----------|--------|----------|
@@ -59,24 +62,24 @@ Run: `.venv/bin/pytest tests/unit/ --cov=store_app --cov-report=term-missing`
 
 ## 4. Test Execution Time (TTE)
 
-Measured locally on MacBook (Darwin 25.2.0, Python 3.12).
+Measured locally on Windows 10, Python 3.12.7, Docker 27.x (2026-04-03).
 
 | Test Suite | Test Count | Execution Time | Avg per Test |
 |------------|-----------|---------------|-------------|
-| Unit tests | 22 | **0.43s** | 19ms |
-| Integration tests | 32 | ~8–12s ² | ~300ms |
-| E2E tests | 5 | ~15–25s ² | ~4s |
-| **All tests** | **59** | **~25–40s** | — |
+| Unit tests | 22 | **2.18s** | 99ms |
+| Integration tests | 28 | **1.11s** | 40ms |
+| E2E tests | 5 | **5.82s** | 1164ms |
+| **All tests** | **55** | **~9.11s** | ~166ms |
 
-> ² Integration and E2E times measured in previous AS1 run; AS2 additions are comparably sized.
+> Unit test time includes Django ORM setup with in-memory SQLite. Integration tests are fast (< 500ms each) as the SUT was already warmed up. E2E includes Playwright browser launch overhead.
 
 **CI pipeline time estimate:**
 | Job | Estimated Duration |
 |-----|------------------|
 | Job 1: Unit Tests | ~3 minutes (setup + run) |
 | Job 2: Integration Tests | ~5–6 minutes (Docker build + wait + run) |
-| Job 3: E2E Tests | ~5–6 minutes (Docker build + Playwright install + run) |
-| **Total pipeline** | **~13–15 minutes** |
+| Job 3: E2E Tests | ~7–8 minutes (Docker build + Playwright install + admin setup + run) |
+| **Total pipeline** | **~15–17 minutes** |
 
 ---
 

@@ -8,7 +8,7 @@ on:
 
 jobs:
   # JOB 1: Unit Tests (no Docker, SQLite in-memory)
-  # Quality gate: 100% pass rate + >=40% line coverage on store_app
+  # Quality gate: 100% pass rate + >=40% line coverage on store_app (models layer 85%)
   unit-tests:
     name: "Unit Tests + Coverage Gate"
     runs-on: ubuntu-latest
@@ -17,7 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
+      - name: Set up Python 3.9
         uses: actions/setup-python@v5
         with:
           python-version: "3.9"
@@ -73,6 +73,10 @@ jobs:
           DOCKER_STRIPE_SECRET_KEY=sk_test_placeholder
           EOF
 
+      - name: Fix line endings in entrypoint.sh
+        working-directory: sut/habaneras-de-lino-drf-api
+        run: sed -i 's/\r//' entrypoint.sh
+
       - name: Start SUT with Docker Compose
         working-directory: sut/habaneras-de-lino-drf-api
         run: docker compose up -d --build
@@ -92,7 +96,7 @@ jobs:
           docker compose -f sut/habaneras-de-lino-drf-api/docker-compose.yml logs --tail=40
           exit 1
 
-      - name: Set up Python 3.12
+      - name: Set up Python 3.9
         uses: actions/setup-python@v5
         with:
           python-version: "3.9"
@@ -152,6 +156,10 @@ jobs:
           DOCKER_STRIPE_SECRET_KEY=sk_test_placeholder
           EOF
 
+      - name: Fix line endings in entrypoint.sh
+        working-directory: sut/habaneras-de-lino-drf-api
+        run: sed -i 's/\r//' entrypoint.sh
+
       - name: Start SUT with Docker Compose
         working-directory: sut/habaneras-de-lino-drf-api
         run: docker compose up -d --build
@@ -167,7 +175,15 @@ jobs:
           done
           exit 1
 
-      - name: Set up Python 3.12
+      - name: Create admin superuser for E2E tests
+        working-directory: sut/habaneras-de-lino-drf-api
+        run: |
+          docker compose exec -T api python manage.py createsuperuser \
+            --username admin --email admin@example.com --noinput
+          docker compose exec -T api python manage.py shell -c \
+            "from django.contrib.auth.models import User; u=User.objects.get(username='admin'); u.set_password('admin1234'); u.save()"
+
+      - name: Set up Python 3.9
         uses: actions/setup-python@v5
         with:
           python-version: "3.9"
