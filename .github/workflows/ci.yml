@@ -58,6 +58,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Create .env for Docker Compose
+        working-directory: sut/habaneras-de-lino-drf-api
+        run: |
+          cat > habaneras_de_lino_drf_api/settings/.env <<'EOF'
+          CURRENT_ENV=DOCKER
+          DOCKER_SECRET_KEY=ci-secret-key-not-for-production
+          DOCKER_DB_NAME=docker_habanerasdelino_db
+          DOCKER_DB_USER=docker_habanerasdelino_user
+          DOCKER_DB_PASSWORD=docker_habanerasdelinouser!
+          DOCKER_DB_HOST=db
+          DOCKER_DB_PORT=5432
+          DOCKER_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder
+          DOCKER_STRIPE_SECRET_KEY=sk_test_placeholder
+          EOF
+
       - name: Start SUT with Docker Compose
         working-directory: sut/habaneras-de-lino-drf-api
         run: docker compose up -d --build
@@ -118,6 +133,21 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Create .env for Docker Compose
+        working-directory: sut/habaneras-de-lino-drf-api
+        run: |
+          cat > habaneras_de_lino_drf_api/settings/.env <<'EOF'
+          CURRENT_ENV=DOCKER
+          DOCKER_SECRET_KEY=ci-secret-key-not-for-production
+          DOCKER_DB_NAME=docker_habanerasdelino_db
+          DOCKER_DB_USER=docker_habanerasdelino_user
+          DOCKER_DB_PASSWORD=docker_habanerasdelinouser!
+          DOCKER_DB_HOST=db
+          DOCKER_DB_PORT=5432
+          DOCKER_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder
+          DOCKER_STRIPE_SECRET_KEY=sk_test_placeholder
+          EOF
 
       - name: Start SUT with Docker Compose
         working-directory: sut/habaneras-de-lino-drf-api
