@@ -10,7 +10,7 @@ environ.Env.read_env()
 try:
     CURRENT_ENV = env("CURRENT_ENV")
 
-except CURRENT_ENV is None:
+except Exception:
     CURRENT_ENV = 'DEVELOPMENT'
 
 
