@@ -106,14 +106,15 @@ This validates the risk-based prioritization: the highest-risk modules yielded t
 
 | Metric | AS1 Baseline | AS2 Result | Change |
 |--------|-------------|-----------|--------|
-| Total tests | 28 | 59 | +111% |
-| Unit test count | 10 | 22 | +120% |
-| Integration test count | 13 | 32 | +146% |
+| Total tests | 28 | **55** | +96% |
+| Unit test count | 10 | **22** | +120% |
+| Integration test count | 13 | **28** | +115% |
+| E2E test count | 5 | **5** | 0% |
 | models.py coverage | ~25% (estimated) | **85%** | +240% |
 | Total store_app coverage | ~25% | **41%** (unit only) | +64% |
-| Defects identified | 1 (D-001 only) | **5** | +400% |
-| Response time gate | Not measured | < 500ms (all pass) | New |
-| CI pipeline | Basic (AS1 draft) | 3-job pipeline with gates | Improved |
+| Defects identified | 1 (D-001 only) | **6** (D-001 to D-006) | +500% |
+| Response time gate | Not measured | **< 500ms (all 6 endpoints pass)** | New |
+| CI pipeline | Basic (AS1 draft) | **3-job pipeline with entrypoint fix + admin setup** | Improved |
 
 ---
 

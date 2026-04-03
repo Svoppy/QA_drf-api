@@ -3,6 +3,8 @@ E2E tests for admin panel using Playwright.
 Requires the app running at BASE_URL and playwright browsers installed:
     playwright install chromium
 """
+import re
+
 import pytest
 from playwright.sync_api import Page, expect
 
@@ -15,8 +17,11 @@ def logged_in_admin(page: Page):
     page.goto(f"{ADMIN_URL}/login/")
     page.fill("input[name='username']", "admin")
     page.fill("input[name='password']", "admin1234")
-    page.locator("input[type='submit']").click()
-    page.wait_for_load_state("networkidle")
+    with page.expect_navigation(wait_until="networkidle"):
+        page.locator("input[type='submit']").click()
+    assert "/admin/login/" not in page.url, (
+        f"Admin login did not succeed; still on {page.url} with title {page.title()!r}"
+    )
     return page
 
 
@@ -40,13 +45,19 @@ class TestAdminLogin:
         assert error_visible, "Expected error message after invalid login"
 
     def test_valid_login_redirects_away_from_login(self, logged_in_admin: Page):
-        assert "/login/" not in logged_in_admin.url
+        expect(logged_in_admin).not_to_have_url(re.compile(r".*/admin/login/.*"))
 
 
 class TestAdminDashboard:
     def test_dashboard_shows_store_app_models(self, logged_in_admin: Page):
         content = logged_in_admin.content()
-        assert "Store_App" in content or "store_app" in content or "Clothing" in content or "Authentication" in content
+        assert (
+            "Store App" in content or
+            "Store_App" in content or
+            "store_app" in content or
+            "Clothing" in content or
+            "Authentication" in content
+        )
 
     def test_logout_works(self, logged_in_admin: Page):
         logged_in_admin.goto(f"{ADMIN_URL}/logout/")

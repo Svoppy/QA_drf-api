@@ -178,10 +178,17 @@ jobs:
       - name: Create admin superuser for E2E tests
         working-directory: sut/habaneras-de-lino-drf-api
         run: |
-          docker compose exec -T api python manage.py createsuperuser \
-            --username admin --email admin@example.com --noinput
           docker compose exec -T api python manage.py shell -c \
-            "from django.contrib.auth.models import User; u=User.objects.get(username='admin'); u.set_password('admin1234'); u.save()"
+            "from django.contrib.auth import get_user_model; \
+            User = get_user_model(); \
+            user, _ = User.objects.get_or_create(username='admin', defaults={'email': 'admin@example.com'}); \
+            user.email = 'admin@example.com'; \
+            user.is_staff = True; \
+            user.is_superuser = True; \
+            user.is_active = True; \
+            user.set_password('admin1234'); \
+            user.save(); \
+            print('Admin user ready')"
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v5
