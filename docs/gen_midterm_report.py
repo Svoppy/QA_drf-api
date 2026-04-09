@@ -12,15 +12,15 @@ from docx.shared import Cm, Inches, Pt, RGBColor
 
 DOCS_DIR = Path(__file__).resolve().parent
 REPORT_PATH = DOCS_DIR / "REPORT_Midterm_Kazikhanov.docx"
-PIPELINE_RUN_IMAGE = DOCS_DIR / "pipeline_run.png"
-PIPELINE_JOB_IMAGE = DOCS_DIR / "pipeline_job_unit.png"
+PIPELINE_RUN_IMAGE = DOCS_DIR / "pipeline_run_current.png"
+PIPELINE_JOB_IMAGE = DOCS_DIR / "pipeline_job_unit_current.png"
 GRAPH_COVERAGE = DOCS_DIR / "graph_coverage.png"
 GRAPH_DEFECTS = DOCS_DIR / "graph_defects.png"
 GRAPH_RUNTIME = DOCS_DIR / "graph_runtime.png"
 
 REPOSITORY_URL = "https://github.com/Svoppy/QA_drf-api"
 WORKFLOW_URL = "https://github.com/Svoppy/QA_drf-api/blob/main/.github/workflows/ci.yml"
-PIPELINE_RUN_URL = "https://github.com/Svoppy/QA_drf-api/actions/runs/23952188937"
+PIPELINE_RUN_URL = "https://github.com/Svoppy/QA_drf-api/actions/runs/24211718046"
 
 
 RISK_COMPONENTS = [
@@ -292,16 +292,16 @@ DEFECT_RISK_MAPPING = [
 
 PIPELINE_RUNTIME = [
     ["Pipeline Element", "Started", "Completed", "Duration", "Status"],
-    ["Workflow run #12", "2026-04-03 15:46:12 UTC", "2026-04-03 15:51:54 UTC", "5m 42s", "Success"],
-    ["Unit Tests + Coverage Gate", "15:46:16 UTC", "15:46:47 UTC", "31s", "Success"],
-    ["Integration Tests (Docker SUT)", "15:46:51 UTC", "15:48:34 UTC", "1m 43s", "Success"],
-    ["E2E Tests (Playwright Chromium)", "15:48:38 UTC", "15:50:42 UTC", "2m 04s", "Success"],
-    ["CD - Push Docker image to GHCR", "15:50:46 UTC", "15:51:54 UTC", "1m 08s", "Success"],
+    ["Workflow run #13", "2026-04-09 20:27:38 UTC", "2026-04-09 20:32:18 UTC", "4m 40s", "Success"],
+    ["Unit Tests + Coverage Gate", "20:27:42 UTC", "20:28:22 UTC", "40s", "Success"],
+    ["Integration Tests (Docker SUT)", "20:28:26 UTC", "20:30:02 UTC", "1m 36s", "Success"],
+    ["E2E Tests (Playwright Chromium)", "20:30:06 UTC", "20:32:17 UTC", "2m 11s", "Success"],
+    ["CD - Push Docker image to GHCR", "20:32:17 UTC", "20:32:17 UTC", "0s", "Skipped on pull_request"],
 ]
 
 LOG_EVIDENCE = [
     ["Source", "Evidence"],
-    ["GitHub Actions run #12", "Run status = completed, conclusion = success, artifacts = coverage-report, integration-test-results, e2e-test-results"],
+    ["GitHub Actions run #13", "Run status = completed, conclusion = success, artifacts = coverage-report, integration-test-results, e2e-test-results"],
     ["integration-results.xml", 'tests="28" failures="0" time="1.117"'],
     ["e2e-results.xml", 'tests="5" failures="0" time="5.818"'],
     ["Midterm local suite", "26 unit, 30 integration, 7 E2E, total 63 automated tests, total coverage 74.41%"],
@@ -313,7 +313,7 @@ PLANNED_VS_ACTUAL = [
     ["Stripe automation", "Mocks or test keys", "Only mock-based failure-path coverage added so far", "Success path and refund flow remain missing"],
     ["Cart lifecycle depth", "Full create, add, retrieve, checkout", "Retrieval and resilience covered; checkout-linked cart path remains shallow", "Partial fulfillment"],
     ["Admin access coverage", "Admin smoke only", "Midterm found and fixed anonymous dashboard access defect", "Scope expanded beyond original plan"],
-    ["Pipeline evidence", "CI on every commit", "Workflow exists and successful run #12 is documented", "Current report now includes pipeline evidence"],
+    ["Pipeline evidence", "CI on every commit", "Workflow exists and successful PR run #13 is documented for the current midterm snapshot", "Current report includes matching pipeline evidence"],
     ["Defect expectation", "Highest-risk modules should yield most defects", "Highest-risk modules did yield most defects", "Planning assumption confirmed"],
 ]
 
