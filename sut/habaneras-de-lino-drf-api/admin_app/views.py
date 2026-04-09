@@ -1,5 +1,6 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
 from django.views.generic import DetailView
@@ -14,12 +15,16 @@ import django_filters
 from django_filters.views import FilterView
 
 
+class DashboardAccessMixin(LoginRequiredMixin):
+    login_url = '/dashboard/accounts/login/'
+
+
 """
     Clothing Collection
 """
 
 
-class ClothingCollectionCreate(CreateView):
+class ClothingCollectionCreate(DashboardAccessMixin, CreateView):
     model = ClothingCollection
     form_class = CollectionForm
     template_name = 'store_app/clothing_collection/clothing_collection_form.html'
@@ -28,7 +33,7 @@ class ClothingCollectionCreate(CreateView):
         return reverse('admin_app:collection-list')
 
 
-class ClothingCollectionList(ListView):
+class ClothingCollectionList(DashboardAccessMixin, ListView):
     model = ClothingCollection
     paginate_by = 10
     template_name = 'store_app/clothing_collection/clothing_collection_list.html'
@@ -38,7 +43,7 @@ class ClothingCollectionList(ListView):
         return ordering
 
 
-class ClothingCollectionUpdate(UpdateView):
+class ClothingCollectionUpdate(DashboardAccessMixin, UpdateView):
     model = ClothingCollection
     form_class = CollectionForm
     template_name = 'store_app/clothing_collection/clothing_collection_form.html'
@@ -47,7 +52,7 @@ class ClothingCollectionUpdate(UpdateView):
         return reverse('admin_app:collection-list')
 
 
-class ClothingCollectionDelete(DeleteView):
+class ClothingCollectionDelete(DashboardAccessMixin, DeleteView):
     model = ClothingCollection
     form_class = CollectionForm
     template_name = 'store_app/delete_obj_form.html'
@@ -65,7 +70,7 @@ class ClothingCollectionDelete(DeleteView):
 """
 
 
-class CategoryCreate(CreateView):
+class CategoryCreate(DashboardAccessMixin, CreateView):
     model = Category
     form_class = CategoryForm
     template_name = 'store_app/category/category_form.html'
@@ -74,7 +79,7 @@ class CategoryCreate(CreateView):
         return reverse('admin_app:category-list')
 
 
-class CategoryList(ListView):
+class CategoryList(DashboardAccessMixin, ListView):
     model = Category
     paginate_by = 10
     template_name = 'store_app/category/category_list.html'
@@ -84,7 +89,7 @@ class CategoryList(ListView):
         return ordering
 
 
-class CategoryUpdate(UpdateView):
+class CategoryUpdate(DashboardAccessMixin, UpdateView):
     model = Category
     form_class = CategoryForm
     template_name = 'store_app/category/category_form.html'
@@ -93,7 +98,7 @@ class CategoryUpdate(UpdateView):
         return reverse('admin_app:category-list')
 
 
-class CategoryDelete(DeleteView):
+class CategoryDelete(DashboardAccessMixin, DeleteView):
     model = Category
     template_name = 'store_app/delete_obj_form.html'
 
@@ -110,7 +115,7 @@ class CategoryDelete(DeleteView):
 """
 
 
-class GlobalConfigCreate(CreateView):
+class GlobalConfigCreate(DashboardAccessMixin, CreateView):
     model = GlobalModel
     form_class = GlobalConfigForm
     template_name = 'store_app/global_config/global_config_form.html'
@@ -131,7 +136,7 @@ class GlobalConfigCreate(CreateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class GlobalConfigList(ListView):
+class GlobalConfigList(DashboardAccessMixin, ListView):
     model = GlobalModel
     paginate_by = 10
     template_name = 'store_app/global_config/global_config_list.html'
@@ -141,7 +146,7 @@ class GlobalConfigList(ListView):
         return ordering
 
 
-class GlobalConfigUpdate(UpdateView):
+class GlobalConfigUpdate(DashboardAccessMixin, UpdateView):
     model = GlobalModel
     form_class = GlobalConfigForm
     template_name = 'store_app/global_config/global_config_form.html'
@@ -162,7 +167,7 @@ class GlobalConfigUpdate(UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class GlobalConfigDelete(DeleteView):
+class GlobalConfigDelete(DashboardAccessMixin, DeleteView):
     model = GlobalModel
     template_name = 'store_app/delete_obj_form.html'
 
@@ -179,7 +184,7 @@ class GlobalConfigDelete(DeleteView):
 """
 
 
-class CustomColorCreate(CreateView):
+class CustomColorCreate(DashboardAccessMixin, CreateView):
     model = CustomColor
     form_class = CustomColorForm
     template_name = 'store_app/custom_color/custom_color_form.html'
@@ -188,7 +193,7 @@ class CustomColorCreate(CreateView):
         return reverse('admin_app:custom-color-list')
 
 
-class CustomColorList(ListView):
+class CustomColorList(DashboardAccessMixin, ListView):
     model = CustomColor
     paginate_by = 10
     template_name = 'store_app/custom_color/custom_color_list.html'
@@ -198,7 +203,7 @@ class CustomColorList(ListView):
         return ordering
 
 
-class CustomColorUpdate(UpdateView):
+class CustomColorUpdate(DashboardAccessMixin, UpdateView):
     model = CustomColor
     form_class = CustomColorForm
     template_name = 'store_app/custom_color/custom_color_form.html'
@@ -207,7 +212,7 @@ class CustomColorUpdate(UpdateView):
         return reverse('admin_app:custom-color-list')
 
 
-class CustomColorDelete(DeleteView):
+class CustomColorDelete(DashboardAccessMixin, DeleteView):
     model = CustomColor
     template_name = 'store_app/delete_obj_form.html'
 
@@ -224,7 +229,7 @@ class CustomColorDelete(DeleteView):
 """
 
 
-class ClothingProductCreate(CreateView):
+class ClothingProductCreate(DashboardAccessMixin, CreateView):
     model = ClothingProduct
     form_class = ClothingProductForm
     template_name = 'store_app/clothing_product/clothing_product_form.html'
@@ -272,7 +277,7 @@ class ClothingProductSimpleFilter(django_filters.FilterSet):
         fields = ['name', 'code']
 
 
-class ClothingProductList(FilterView):
+class ClothingProductList(DashboardAccessMixin, FilterView):
     model = ClothingProduct
     filterset_class = ClothingProductFilter
     context_object_name = 'clothing_products'
@@ -284,7 +289,7 @@ class ClothingProductList(FilterView):
         return ordering
 
 
-class ClothingProductUpdate(UpdateView):
+class ClothingProductUpdate(DashboardAccessMixin, UpdateView):
     model = ClothingProduct
     form_class = ClothingProductForm
     template_name = 'store_app/clothing_product/clothing_product_form.html'
@@ -328,7 +333,7 @@ class ClothingProductUpdate(UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class ClothingProductDelete(DeleteView):
+class ClothingProductDelete(DashboardAccessMixin, DeleteView):
     model = ClothingProduct
     template_name = 'store_app/delete_obj_form.html'
 
@@ -340,7 +345,7 @@ class ClothingProductDelete(DeleteView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class ClothingProductFilterCollection(FilterView):
+class ClothingProductFilterCollection(DashboardAccessMixin, FilterView):
     model = ClothingProduct
     paginate_by = 10
     filterset_class = ClothingProductSimpleFilter
@@ -358,7 +363,7 @@ class ClothingProductFilterCollection(FilterView):
         return ordering
 
 
-class ClothingProductFilterCategory(ListView):
+class ClothingProductFilterCategory(DashboardAccessMixin, ListView):
     model = ClothingProduct
     paginate_by = 10
     template_name = 'store_app/clothing_product/clothing_product_list.html'
@@ -389,7 +394,7 @@ class OrderFilter(django_filters.FilterSet):
         fields = ['first_name', 'last_name', 'email', 'phone', 'status']
 
 
-class OrderList(FilterView):
+class OrderList(DashboardAccessMixin, FilterView):
     model = Order
     filterset_class = OrderFilter
     context_object_name = 'orders'
@@ -400,7 +405,7 @@ class OrderList(FilterView):
         return Order.objects.filter(ordered=True).order_by('-ordered_date')
 
 
-class OrderCreate(CreateView):
+class OrderCreate(DashboardAccessMixin, CreateView):
     model = Order
     form_class = OrderForm
     template_name = 'store_app/order/order_form.html'
@@ -415,7 +420,7 @@ class OrderCreate(CreateView):
         self.object.save()
         return HttpResponseRedirect(self.get_success_url())
 
-class OrderUpdate(UpdateView):
+class OrderUpdate(DashboardAccessMixin, UpdateView):
     model = Order
     form_class = OrderForm
     template_name = 'store_app/order/order_form.html'
@@ -424,7 +429,7 @@ class OrderUpdate(UpdateView):
         return reverse('admin_app:order-list')
 
 
-class OrderDelete(DeleteView):
+class OrderDelete(DashboardAccessMixin, DeleteView):
     model = Order
     template_name = 'store_app/delete_obj_form.html'
 
@@ -436,7 +441,7 @@ class OrderDelete(DeleteView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class OrderDetail(DetailView):
+class OrderDetail(DashboardAccessMixin, DetailView):
     model = Order
     template_name = 'store_app/order/order_detail.html'
     queryset = Order.objects.all()
@@ -454,7 +459,7 @@ class PaymentFilter(django_filters.FilterSet):
         fields = ['email', 'refund']
 
 
-class PaymentList(FilterView):
+class PaymentList(DashboardAccessMixin, FilterView):
     model = Payment
     filterset_class = PaymentFilter
     context_object_name = 'payments'
@@ -465,7 +470,7 @@ class PaymentList(FilterView):
         return Payment.objects.order_by('-timestamp')
 
 
-class PaymentCreate(CreateView):
+class PaymentCreate(DashboardAccessMixin, CreateView):
     model = Payment
     form_class = PaymentForm
     template_name = 'store_app/payment/payment_form.html'
@@ -485,7 +490,7 @@ class PaymentCreate(CreateView):
         return reverse('admin_app:payment-list')
 
 
-class PaymentUpdate(UpdateView):
+class PaymentUpdate(DashboardAccessMixin, UpdateView):
     model = Payment
     form_class = PaymentForm
     template_name = 'store_app/payment/payment_form.html'
@@ -494,7 +499,7 @@ class PaymentUpdate(UpdateView):
         return reverse('admin_app:payment-list')
 
 
-class PaymentDelete(DeleteView):
+class PaymentDelete(DashboardAccessMixin, DeleteView):
     model = Payment
     template_name = 'store_app/delete_obj_form.html'
 
