@@ -10,6 +10,12 @@ Tests cover:
 
 Requires: SUT running at http://localhost:8002
 """
+# SEARCH TAGS:
+# INTEGRATION TEST
+# ORDER TEST
+# NEGATIVE TEST
+# VALIDATION TEST
+# IDEMPOTENCY RISK TEST
 import pytest
 import requests
 
@@ -35,6 +41,7 @@ def session():
 
 
 class TestOrderFieldValidation:
+    # SEARCH TAG: INTEGRATION TEST / ORDER TEST / NEGATIVE TEST / VALIDATION TEST
     """M1 + M6: All POST /orders/ required fields must be validated server-side."""
 
     def test_invalid_email_format_rejected(self, session):

@@ -5,6 +5,13 @@ Targets:
   - M1: Order and Checkout
   - M3: Cart Management
 """
+# SEARCH TAGS:
+# MIDTERM TEST
+# INTEGRATION TEST
+# NEGATIVE TEST
+# RESILIENCE TEST
+# INVALID INPUT TEST
+# CONCURRENCY TEST
 from concurrent.futures import ThreadPoolExecutor
 import uuid
 
@@ -20,7 +27,10 @@ def session():
 
 
 class TestMidtermResilience:
+    # SEARCH TAG: MIDTERM TEST / INTEGRATION TEST / RESILIENCE TEST
+
     def test_tc_mt_it_m1_01_orders_endpoint_rejects_malformed_json_without_500(self, session):
+        # SEARCH TAG: MIDTERM TEST / NEGATIVE TEST / MALFORMED JSON
         response = session.post(
             f"{BASE_URL}/orders/",
             data='{"broken_json": ',
@@ -33,6 +43,7 @@ class TestMidtermResilience:
         )
 
     def test_tc_mt_it_m3_01_parallel_cart_requests_same_token_do_not_crash(self, session):
+        # SEARCH TAG: MIDTERM TEST / CONCURRENCY TEST / RESILIENCE TEST
         token = "midterm-parallel-" + str(uuid.uuid4())
 
         def fetch_cart():

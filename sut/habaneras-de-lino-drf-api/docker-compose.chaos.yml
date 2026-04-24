@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.12.0
+    command: ["-host=0.0.0.0", "-config=/config/toxiproxy.json"]
+    volumes:
+      - ./toxiproxy.json:/config/toxiproxy.json:ro
+    ports:
+      - "8474:8474"
+    links:
+      - db
+
+  api:
+    environment:
+      DOCKER_DB_HOST: toxiproxy
+      DOCKER_DB_PORT: 15432
+    depends_on:
+      - db
+      - toxiproxy
+

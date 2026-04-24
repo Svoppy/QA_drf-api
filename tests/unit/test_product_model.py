@@ -6,6 +6,13 @@ Risk areas:
   M4 — Product Catalog (model-level field constraints)
   M6 — Data Validation (field and validator correctness)
 """
+# SEARCH TAGS:
+# UNIT TEST
+# MODEL TEST
+# CART TEST
+# PRODUCT TEST
+# VALIDATION TEST
+# COVERAGE TARGET
 import pytest
 from decimal import Decimal
 
@@ -20,6 +27,7 @@ from store_app.models import (
 
 @pytest.mark.django_db
 class TestCartTotalAmountWithItems:
+    # SEARCH TAG: UNIT TEST / CART TEST / COVERAGE TARGET
     """M3: Cart.total_amount must sum quantity * base_pricing for all variations."""
 
     def test_cart_total_with_single_variation(self):
@@ -52,6 +60,7 @@ class TestCartTotalAmountWithItems:
 
 @pytest.mark.django_db
 class TestClothingProductFields:
+    # SEARCH TAG: UNIT TEST / PRODUCT TEST / VALIDATION TEST
     """M6: ClothingProduct model field defaults and constraints."""
 
     def test_product_default_tag_is_shirt(self):

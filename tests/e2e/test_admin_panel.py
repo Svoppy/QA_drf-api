@@ -3,6 +3,12 @@ E2E tests for admin panel using Playwright.
 Requires the app running at BASE_URL and playwright browsers installed:
     playwright install chromium
 """
+# SEARCH TAGS:
+# E2E TEST
+# PLAYWRIGHT TEST
+# UI TEST
+# ADMIN TEST
+# LOGIN TEST
 import re
 
 import pytest
@@ -26,6 +32,8 @@ def logged_in_admin(page: Page):
 
 
 class TestAdminLogin:
+    # SEARCH TAG: E2E TEST / PLAYWRIGHT TEST / LOGIN TEST
+
     def test_login_page_loads(self, page: Page):
         page.goto(f"{ADMIN_URL}/login/")
         expect(page).to_have_title("Log in | Django site admin")
@@ -49,6 +57,8 @@ class TestAdminLogin:
 
 
 class TestAdminDashboard:
+    # SEARCH TAG: E2E TEST / PLAYWRIGHT TEST / ADMIN TEST
+
     def test_dashboard_shows_store_app_models(self, logged_in_admin: Page):
         content = logged_in_admin.content()
         assert (
