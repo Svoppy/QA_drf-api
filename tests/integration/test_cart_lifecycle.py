@@ -9,6 +9,12 @@ Tests cover:
 
 Requires: SUT running at http://localhost:8002
 """
+# SEARCH TAGS:
+# INTEGRATION TEST
+# CART TEST
+# TOKEN TEST
+# NEGATIVE TEST
+# RESILIENCE TEST
 import pytest
 import requests
 import uuid
@@ -22,6 +28,7 @@ def session():
 
 
 class TestCartTokenRetrieval:
+    # SEARCH TAG: INTEGRATION TEST / CART TEST / TOKEN TEST
     """GET /cart/<token>/ — token-based cart access (no auth required)."""
 
     def test_new_token_returns_200(self, session):

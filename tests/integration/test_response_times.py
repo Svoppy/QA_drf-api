@@ -7,6 +7,12 @@ Quality gate: every GET endpoint must respond in < 500ms under no-load condition
 Risk areas: M4 (Product Catalog), M5 (Collections/Categories), M3 (Cart)
 Requires: SUT running at http://localhost:8002
 """
+# SEARCH TAGS:
+# INTEGRATION TEST
+# PERFORMANCE TEST
+# RESPONSE TIME TEST
+# QUALITY GATE TEST
+# NON FUNCTIONAL TEST
 import pytest
 import requests
 import time
@@ -36,6 +42,7 @@ def assert_response_time(response, endpoint: str, threshold_ms: int = MAX_RESPON
 
 
 class TestEndpointResponseTimes:
+    # SEARCH TAG: INTEGRATION TEST / PERFORMANCE TEST / QUALITY GATE TEST
     """All high-traffic GET endpoints must respond within the 500ms quality gate."""
 
     def test_product_list_page1_under_500ms(self, session):

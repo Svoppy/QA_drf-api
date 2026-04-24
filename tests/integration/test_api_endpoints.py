@@ -2,6 +2,12 @@
 Integration tests for store_app REST API endpoints.
 Requires the app to be running at BASE_URL (docker compose up).
 """
+# SEARCH TAGS:
+# INTEGRATION TEST
+# API TEST
+# ENDPOINT TEST
+# SMOKE TEST
+# NEGATIVE TEST
 import pytest
 import requests
 
@@ -15,6 +21,7 @@ def session():
 
 
 class TestProductListAPI:
+    # SEARCH TAG: INTEGRATION TEST / API TEST / SMOKE TEST
     """GET /clothing-products/<page>/"""
 
     def test_returns_200(self, session):
@@ -36,6 +43,7 @@ class TestProductListAPI:
 
 
 class TestProductDetailAPI:
+    # SEARCH TAG: INTEGRATION TEST / API TEST / NEGATIVE TEST
     """GET /clothing-products/items/<id>/"""
 
     def test_nonexistent_product_returns_404(self, session):
@@ -44,6 +52,7 @@ class TestProductDetailAPI:
 
 
 class TestCollectionsAPI:
+    # SEARCH TAG: INTEGRATION TEST / API TEST / SMOKE TEST
     """GET /clothing-collections/"""
 
     def test_returns_200(self, session):
@@ -57,6 +66,7 @@ class TestCollectionsAPI:
 
 
 class TestCategoriesAPI:
+    # SEARCH TAG: INTEGRATION TEST / API TEST / SMOKE TEST
     """GET /categories/"""
 
     def test_returns_200(self, session):
@@ -70,6 +80,7 @@ class TestCategoriesAPI:
 
 
 class TestCartAPI:
+    # SEARCH TAG: INTEGRATION TEST / API TEST / NEGATIVE TEST
     """GET /cart/<token>/"""
 
     def test_unknown_token_returns_200_or_404(self, session):
@@ -84,6 +95,7 @@ class TestCartAPI:
 
 
 class TestOrderCreateAPI:
+    # SEARCH TAG: INTEGRATION TEST / API TEST / NEGATIVE TEST / ORDER TEST
     """POST /orders/"""
 
     def test_empty_payload_returns_400(self, session):

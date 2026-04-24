@@ -4,6 +4,13 @@ Unit tests for GlobalModel tax and currency calculation logic.
 Risk area: M8 — Tax & Currency Calculation (Risk Score: 12, High)
 Design risk: GlobalModel.objects.get(active=True) crashes on 0 or 2+ active records.
 """
+# SEARCH TAGS:
+# UNIT TEST
+# BUSINESS LOGIC TEST
+# TAX CALCULATION TEST
+# CURRENCY CALCULATION TEST
+# EDGE CASE TEST
+# COVERAGE TARGET
 import pytest
 from decimal import Decimal
 from django.core.exceptions import MultipleObjectsReturned
@@ -13,6 +20,7 @@ from store_app.models import GlobalModel, ClothingProduct, CustomColor, Cart, Pr
 
 @pytest.mark.django_db
 class TestGlobalModelPricingWithTax:
+    # SEARCH TAG: UNIT TEST / COVERAGE TARGET / M8
     """Tests for ClothingProduct.pricing_with_tax() — depends on single active GlobalModel."""
 
     def test_no_active_model_raises_does_not_exist(self):

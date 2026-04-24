@@ -11,3 +11,8 @@ sut/habaneras-de-lino-drf-api/habaneras_de_lino_drf_api/settings/.env
 sut/habaneras-de-lino-drf-api/db.sqlite3
 sut/habaneras-de-lino-drf-api/staticfiles/
 *.log
+artifacts/
+.mutmut-cache/
+html/
+.vendor/
+output/

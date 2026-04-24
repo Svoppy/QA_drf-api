@@ -2,6 +2,12 @@
 Unit tests for store_app models.
 Tests model validation, business logic, and field constraints.
 """
+# SEARCH TAGS:
+# UNIT TEST
+# MODEL TEST
+# VALIDATION TEST
+# NEGATIVE TEST
+# COVERAGE TARGET
 import pytest
 from decimal import Decimal
 from django.core.exceptions import ValidationError
@@ -19,6 +25,7 @@ from store_app.models import (
 # -------------------------------------------------------
 # CustomColor validator
 # -------------------------------------------------------
+# SEARCH TAG: UNIT TEST / VALIDATION TEST / NEGATIVE TEST
 
 class TestCustomColorValidator:
     def test_valid_hex_6(self):
@@ -46,6 +53,7 @@ class TestCustomColorValidator:
 # -------------------------------------------------------
 # Cart total_amount property
 # -------------------------------------------------------
+# SEARCH TAG: UNIT TEST / BUSINESS LOGIC TEST / COVERAGE TARGET
 
 @pytest.mark.django_db
 class TestCartTotalAmount:
@@ -61,6 +69,7 @@ class TestCartTotalAmount:
 # -------------------------------------------------------
 # Address model
 # -------------------------------------------------------
+# SEARCH TAG: UNIT TEST / MODEL TEST / COVERAGE TARGET
 
 @pytest.mark.django_db
 class TestAddressModel:

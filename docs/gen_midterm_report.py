@@ -1,7 +1,5 @@
-from datetime import datetime
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 from docx import Document
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -426,53 +424,7 @@ def add_image(doc, image_path, caption):
 
 
 def generate_graphs():
-    plt.rcParams["font.family"] = "Times New Roman"
-    plt.rcParams["text.color"] = "black"
-    plt.rcParams["axes.labelcolor"] = "black"
-    plt.rcParams["xtick.color"] = "black"
-    plt.rcParams["ytick.color"] = "black"
-
-    modules = ["M1", "M2", "M6", "M8", "M3"]
-    coverage_values = [72.00, 66.67, 81.08, 94.74, 54.17]
-    plt.figure(figsize=(8, 4.6))
-    bars = plt.bar(modules, coverage_values, color=["#111111", "#444444", "#777777", "#999999", "#222222"])
-    plt.axhline(70, color="black", linestyle="--", linewidth=1)
-    plt.ylim(0, 100)
-    plt.ylabel("Coverage %")
-    plt.title("Coverage by High-Risk Module")
-    for bar, value in zip(bars, coverage_values):
-        plt.text(bar.get_x() + bar.get_width() / 2, value + 1, f"{value:.2f}", ha="center", va="bottom", fontsize=9)
-    plt.tight_layout()
-    plt.savefig(GRAPH_COVERAGE, dpi=200, facecolor="white")
-    plt.close()
-
-    defect_modules = ["M1", "M2", "M6", "M8", "M3", "M7"]
-    defect_counts = [2, 0, 1, 3, 1, 1]
-    plt.figure(figsize=(8, 4.6))
-    bars = plt.bar(defect_modules, defect_counts, color=["#111111", "#444444", "#666666", "#888888", "#222222", "#555555"])
-    plt.ylabel("Defect Count")
-    plt.title("Detected Defects by Module")
-    for bar, value in zip(bars, defect_counts):
-        plt.text(bar.get_x() + bar.get_width() / 2, value + 0.05, str(value), ha="center", va="bottom", fontsize=9)
-    plt.tight_layout()
-    plt.savefig(GRAPH_DEFECTS, dpi=200, facecolor="white")
-    plt.close()
-
-    categories = ["Unit", "Integration", "E2E", "Total"]
-    before = [2.18, 1.11, 5.82, 9.11]
-    after = [1.77, 1.15, 9.17, 12.09]
-    x = range(len(categories))
-    width = 0.36
-    plt.figure(figsize=(8, 4.6))
-    plt.bar([i - width / 2 for i in x], before, width=width, color="#555555", label="Before")
-    plt.bar([i + width / 2 for i in x], after, width=width, color="#111111", label="After")
-    plt.xticks(list(x), categories)
-    plt.ylabel("Seconds")
-    plt.title("Execution Time Before vs After Midterm")
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(GRAPH_RUNTIME, dpi=200, facecolor="white")
-    plt.close()
+    return None
 
 
 def build_report():
@@ -498,7 +450,7 @@ def build_report():
     set_run_style(title_run, size=14, bold=True)
 
     for line in [
-        "Student: Dias Kazikhanov",
+        "Student: Dias Kazikhanov, Abzal Nurym, Amir Karataev",
         "Group: CSE-2506M",
         "Course: Advanced QA",
         "Date: April 10, 2026",
@@ -511,9 +463,11 @@ def build_report():
     add_heading(doc, "1. System Description", level=1)
     add_paragraph(
         doc,
-        "The system under test is Habaneras de Lino DRF API. It is an e-commerce backend "
-        "that provides catalog browsing, cart handling, checkout, payment integration, "
-        "pricing, and dashboard management features."
+        "The system under test is Habaneras de Lino DRF API, an e-commerce backend used in this "
+        "midterm as a practical QA target rather than as an isolated implementation showcase. "
+        "The platform exposes a realistic mix of catalog, cart, checkout, pricing, payment, and "
+        "dashboard-management behavior, which makes it suitable for observing how a layered QA "
+        "strategy performs against business-relevant and failure-sensitive flows."
     )
     add_dash_list(
         doc,
@@ -553,9 +507,11 @@ def build_report():
     add_heading(doc, "2. Methodology", level=1)
     add_paragraph(
         doc,
-        "The methodology remained risk-based. High-risk modules from Assignment 1 were "
-        "re-evaluated using empirical data taken from automation runs, test reports, "
-        "coverage measurements, and observed defects from Assignment 2 and the current midterm iteration."
+        "The methodology remained risk-based, but at the midterm stage it was no longer driven only "
+        "by planning assumptions. High-risk modules identified earlier were re-examined against actual "
+        "automation evidence, including execution reports, coverage measurements, repeated runs, and "
+        "defects observed across Assignment 2 and the current iteration. This allowed the analysis to "
+        "move from expected risk toward measured risk visibility."
     )
     add_dash_list(
         doc,
@@ -608,8 +564,11 @@ def build_report():
     add_heading(doc, "3. Automation Implementation", level=1)
     add_paragraph(
         doc,
-        "The automation suite was extended strictly across the three required levels: "
-        "unit, integration, and end-to-end. The pipeline remained GitHub Actions."
+        "The automation suite was expanded in a controlled way across the three required levels: "
+        "unit, integration, and end-to-end. The intention was not to inflate the test count for its "
+        "own sake, but to place new checks where the earlier suite was still leaving risk, ambiguity, "
+        "or weak detectability visible. Execution remained CI-driven through GitHub Actions so that "
+        "the added coverage would remain reproducible rather than purely local."
     )
 
     add_heading(doc, "3.1 CI/CD Setup", level=2)
@@ -654,8 +613,10 @@ def build_report():
     add_heading(doc, "5. Discussion", level=1)
     add_paragraph(
         doc,
-        "The midterm iteration improved detectability and evidence quality, but it also "
-        "showed that some planning assumptions from Assignment 1 and Assignment 2 were incomplete."
+        "The midterm iteration strengthened both detectability and evidence quality, but it also exposed "
+        "where earlier planning had been too optimistic, too broad, or simply not specific enough. In "
+        "that sense, the value of the iteration was not limited to better metrics. It also clarified "
+        "which parts of the QA strategy were genuinely effective and which parts still relied on incomplete observation."
     )
 
     add_heading(doc, "5.1 Quality Gate Evaluation", level=2)
@@ -669,10 +630,10 @@ def build_report():
     add_dash_list(
         doc,
         [
-            "What worked: the pipeline structure, repeatability of the selected midterm tests, and the rapid discovery of a real dashboard authorization defect.",
-            "What did not work: early coverage concentration was too model-heavy, leaving M2 and M3 with low detectability at the start of the midterm.",
-            "Unexpected findings: M8 pricing risk increased after confirmed crash reproduction, and dashboard access control was weaker than expected.",
-            "Improvements for next phase: add Stripe success-path coverage, expand cart branch coverage, and keep per-module evidence visible alongside total coverage.",
+            "What worked: the pipeline structure stayed stable, the selected midterm tests remained repeatable across reruns, and the expansion quickly surfaced a real dashboard authorization defect rather than only confirming already-known behavior.",
+            "What did not work: early coverage growth was too concentrated around safer model paths, which left M2 and M3 with weaker detectability than the overall coverage number initially suggested.",
+            "Unexpected findings: M8 pricing risk became more serious after crash reproduction was confirmed, and dashboard access control turned out to be less reliable than the earlier assignments had implied.",
+            "Improvements for next phase: add stronger Stripe success-path evidence, deepen cart branch coverage, and continue reporting module-level evidence instead of relying too heavily on total coverage alone.",
         ],
     )
 

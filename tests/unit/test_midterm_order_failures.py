@@ -5,6 +5,14 @@ Targets:
   - M1: Order and Checkout
   - M2: Stripe Payment Integration
 """
+# SEARCH TAGS:
+# MIDTERM TEST
+# UNIT TEST
+# NEGATIVE TEST
+# FAILURE TEST
+# PAYMENT FAILURE TEST
+# ORDER TEST
+# STRIPE TEST
 from unittest.mock import patch
 
 import pytest
@@ -37,10 +45,13 @@ def build_order_payload(cart_id):
 
 @pytest.mark.django_db
 class TestMidtermOrderPaymentFailures:
+    # SEARCH TAG: MIDTERM TEST / UNIT TEST / NEGATIVE TEST / FAILURE TEST
+
     def setup_method(self):
         self.factory = APIRequestFactory()
 
     def test_tc_mt_ut_m2_01_token_failure_returns_400_and_rolls_back_order(self):
+        # SEARCH TAG: MIDTERM TEST / NEGATIVE TEST / STRIPE TOKEN FAILURE
         cart = Cart.objects.create(ip_address="127.0.0.1", token="midterm-token-1")
         payload = build_order_payload(cart.id)
         request = self.factory.post("/store/orders/", payload, format="json")
@@ -57,6 +68,7 @@ class TestMidtermOrderPaymentFailures:
         assert Payment.objects.count() == 0
 
     def test_tc_mt_ut_m2_02_charge_failure_returns_400_and_rolls_back_order(self):
+        # SEARCH TAG: MIDTERM TEST / NEGATIVE TEST / STRIPE CHARGE FAILURE
         cart = Cart.objects.create(ip_address="127.0.0.1", token="midterm-token-2")
         payload = build_order_payload(cart.id)
         request = self.factory.post("/store/orders/", payload, format="json")

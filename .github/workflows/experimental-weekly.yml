@@ -1,0 +1,164 @@
+name: Assignment 3 - Experimental Testing
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1"
+
+jobs:
+  experimental-testing:
+    name: "Performance + Mutation + Chaos"
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Install build tools for Python wheels
+        run: sudo apt-get update && sudo apt-get install -y gcc g++
+
+      - name: Install SUT dependencies
+        run: pip install -r sut/habaneras-de-lino-drf-api/requirements.txt
+
+      - name: Install test and experiment dependencies
+        run: |
+          pip install -r requirements-test.txt
+          pip install -r requirements-experiment.txt
+
+      - name: Create .env for Docker Compose
+        working-directory: sut/habaneras-de-lino-drf-api
+        run: |
+          cat > habaneras_de_lino_drf_api/settings/.env <<'EOF'
+          CURRENT_ENV=DOCKER
+          DOCKER_SECRET_KEY=ci-secret-key-not-for-production
+          DOCKER_DB_NAME=docker_habanerasdelino_db
+          DOCKER_DB_USER=docker_habanerasdelino_user
+          DOCKER_DB_PASSWORD=docker_habanerasdelinouser!
+          DOCKER_DB_HOST=db
+          DOCKER_DB_PORT=5432
+          DOCKER_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder
+          DOCKER_STRIPE_SECRET_KEY=sk_test_placeholder
+          EOF
+
+      - name: Fix line endings in entrypoint.sh
+        working-directory: sut/habaneras-de-lino-drf-api
+        run: sed -i 's/\r//' entrypoint.sh
+
+      - name: Start experiment Docker stack
+        working-directory: sut/habaneras-de-lino-drf-api
+        run: |
+          docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.override.yml \
+            -f docker-compose.experiment.yml \
+            -f docker-compose.chaos.yml \
+            up -d --build
+
+      - name: Wait for SUT health
+        run: |
+          for i in $(seq 1 40); do
+            if curl -sf http://localhost:8002/store/clothing-collections/ > /dev/null 2>&1; then
+              echo "SUT ready"
+              exit 0
+            fi
+            sleep 5
+          done
+          docker compose \
+            -f sut/habaneras-de-lino-drf-api/docker-compose.yml \
+            -f sut/habaneras-de-lino-drf-api/docker-compose.override.yml \
+            -f sut/habaneras-de-lino-drf-api/docker-compose.experiment.yml \
+            -f sut/habaneras-de-lino-drf-api/docker-compose.chaos.yml \
+            logs --tail=80
+          exit 1
+
+      - name: Seed experiment data
+        working-directory: sut/habaneras-de-lino-drf-api
+        run: |
+          docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.override.yml \
+            -f docker-compose.experiment.yml \
+            -f docker-compose.chaos.yml \
+            exec -T api python manage.py seed_experiment_data \
+              --products 120 \
+              --carts 20 \
+              --admin-user admin \
+              --admin-password admin1234
+
+      - name: Preflight unit and integration smoke
+        run: |
+          python -m pytest tests/unit/ -q
+          python -m pytest tests/integration/test_api_endpoints.py tests/integration/test_response_times.py -q
+        env:
+          DJANGO_SETTINGS_MODULE: habaneras_de_lino_drf_api.settings.test
+          PYTHONPATH: sut/habaneras-de-lino-drf-api
+
+      - name: Run performance scenarios
+        run: |
+          mkdir -p artifacts/performance
+          for scenario in normal load peak endurance; do
+            docker run --rm \
+              --network host \
+              -e BASE_URL=http://localhost:8002 \
+              -e SCENARIO=$scenario \
+              -v "${GITHUB_WORKSPACE}:/work" \
+              -w /work \
+              grafana/k6:0.49.0 run \
+              --summary-export "/work/artifacts/performance/${scenario}-summary.json" \
+              /work/tests/performance/assignment3_scenarios.js
+          done
+
+      - name: Run mutation testing
+        run: python scripts/experiment/run_mutation.py --output-dir artifacts/mutation
+        env:
+          DJANGO_SETTINGS_MODULE: habaneras_de_lino_drf_api.settings.test
+          PYTHONPATH: sut/habaneras-de-lino-drf-api
+
+      - name: Run chaos probes
+        run: |
+          python scripts/experiment/run_chaos.py \
+            --base-url http://localhost:8002 \
+            --toxiproxy-url http://localhost:8474 \
+            --scenario all \
+            --probes 20 \
+            --output-dir artifacts/chaos
+
+      - name: Build consolidated summary
+        if: always()
+        run: python scripts/experiment/build_summary.py --output artifacts/summary.md
+
+      - name: Dump Docker logs
+        if: always()
+        working-directory: sut/habaneras-de-lino-drf-api
+        run: |
+          mkdir -p ../../artifacts/docker
+          docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.override.yml \
+            -f docker-compose.experiment.yml \
+            -f docker-compose.chaos.yml \
+            logs --no-color > ../../artifacts/docker/compose.log
+
+      - name: Upload experimental artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: assignment3-experimental-artifacts
+          path: artifacts/
+
+      - name: Stop experiment Docker stack
+        if: always()
+        working-directory: sut/habaneras-de-lino-drf-api
+        run: |
+          docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.override.yml \
+            -f docker-compose.experiment.yml \
+            -f docker-compose.chaos.yml \
+            down
